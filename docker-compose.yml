@@ -1,0 +1,32 @@
+version: "3.9"
+
+services:
+  pulmonaryai:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: pulmonaryai-app
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+      - media_volume:/app/media
+    environment:
+      - DEBUG=True
+      - DJANGO_SETTINGS_MODULE=pulmonary_api.settings
+    command: python manage.py runserver 0.0.0.0:8000
+    networks:
+      - pulmonaryai-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/diagnosis/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+volumes:
+  media_volume:
+
+networks:
+  pulmonaryai-network:
+    driver: bridge

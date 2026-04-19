@@ -1,10 +1,13 @@
-# PulmonaryAI - Django Deep Learning Diagnostic Platform
+# PulmonaryAI - Plateforme Clinique d'Aide au Diagnostic Pulmonaire
 
-PulmonaryAI est une application Django pour l'analyse de radiographies thoraciques avec un modele deep learning (TensorFlow). Le projet fournit:
+**PulmonaryAI** est une plateforme web d'analyse de radiographies thoraciques reposant sur le deep learning (TensorFlow). Concue pour l'environnement clinique, elle fournit:
 
-- une interface web professionnelle pour uploader une image et lire les resultats,
-- des endpoints API REST pour integrer la prediction dans d'autres applications,
-- une presentation des classes probables et des scores de confiance.
+✅ **Interface web intuitive** pour uploader des radiographies et consulter les resultats  
+✅ **Inference IA rapide** via modele CNN pre-entraine, avec probabilites multi-classes  
+✅ **API REST documentee** pour integration dans d'autres systemes ou applications mobile  
+✅ **Enregistrement automatique** de chaque analyse avec metadonnees patient et tracabilite  
+✅ **Historique et comparaisons** pour suivi longitudinal des cas  
+✅ **Deployable via Docker** pour environnement de production
 
 ## Fonctionnalites
 
@@ -16,12 +19,16 @@ PulmonaryAI est une application Django pour l'analyse de radiographies thoraciqu
 
 ## Stack Technique
 
-- Backend: Django 4.2
-- IA: TensorFlow / Keras
-- API: Django REST Framework
-- Traitement image: Pillow, NumPy
-- UI: Tailwind CSS (CDN)
-- Base de donnees: SQLite
+| Composant            | Technologie                      |
+| -------------------- | -------------------------------- |
+| **Backend**          | Django 5.1.5                     |
+| **IA**               | TensorFlow 2.20 / Keras          |
+| **API**              | Django REST Framework 3.15       |
+| **Traitement image** | Pillow, NumPy, scikit-learn      |
+| **UI**               | Tailwind CSS (CDN)               |
+| **Base de donnees**  | SQLite (dev) / PostgreSQL (prod) |
+| **Containerisation** | Docker & Docker Compose          |
+| **Python**           | 3.11+                            |
 
 ## Structure Principale
 
@@ -33,17 +40,31 @@ django_deepLearning/
 |  |- templates/           # Interface web Tailwind
 |- media/                  # Fichiers temporaires uploades (runtime)
 |- db.sqlite3              # Base SQLite
+|- Dockerfile              # Configuration Docker
+|- docker-compose.yml      # Orchestration Docker Compose
 |- requirements.txt
 |- manage.py
 ```
+
+## Installation Rapide (Docker)
+
+**Prerequis**: Docker et Docker Compose installes.
+
+```bash
+git clone https://github.com/LaithMahdi/Project-Deep-Learning
+cd Project-Deep-Learning
+docker-compose up --build
+```
+
+Acces: http://localhost:8000/diagnosis/
 
 ## Installation
 
 1. Cloner le projet
 
 ```bash
-git clone <votre-repo>
-cd django_deepLearning
+git clone https://github.com/LaithMahdi/Project-Deep-Learning
+cd Project-Deep-Learning
 ```
 
 2. Creer un environnement virtuel
@@ -54,22 +75,10 @@ python -m venv .venv
 
 3. Activer l'environnement virtuel
 
-Windows (PowerShell):
-
-```powershell
-.venv\Scripts\Activate.ps1
-```
-
 Windows (CMD):
 
 ```bat
 .venv\Scripts\activate.bat
-```
-
-Windows (Git Bash):
-
-```bash
-source .venv/Scripts/activate
 ```
 
 Linux/Mac:
@@ -106,30 +115,23 @@ python manage.py runserver
 
 ## Script Automatique
 
-Un script shell est disponible pour automatiser tout le setup:
-
-- creation du venv
-- activation du venv
-- installation des dependances
-- makemigrations + migrate
-- lancement du serveur
-
-Utilisation:
+Un script shell est disponible pour automatiser l'installation locale:
 
 ```bash
 bash script.sh
 ```
 
-Remarque:
-
-- Sur Windows, ce script est concu pour Git Bash.
-- L'activation faite dans le script est valable dans le processus du script. Le serveur est lance dans ce meme processus.
+**Note**: Ce script fonctionne sous Git Bash (Windows) et bash native (Linux/Mac).
 
 ## Acces Application
 
-- Interface analyse: http://127.0.0.1:8000/diagnosis/
-- API Lab (test visuel): http://127.0.0.1:8000/diagnosis/api-test/
-- Admin Django: http://127.0.0.1:8000/admin/
+| URL                                          | Description                      |
+| -------------------------------------------- | -------------------------------- |
+| http://127.0.0.1:8000/diagnosis/             | Accueil et page d'analyse        |
+| http://127.0.0.1:8000/diagnosis/upload-page/ | Interface d'upload               |
+| http://127.0.0.1:8000/diagnosis/history/     | Historique des analyses          |
+| http://127.0.0.1:8000/diagnosis/api-test/    | Laboratoire API (test visuel)    |
+| http://127.0.0.1:8000/admin/                 | Admin Django (si superuser cree) |
 
 ## Endpoints API
 
@@ -216,7 +218,59 @@ python manage.py runserver
 
 ## Ameliorations Recommandees
 
-- Brancher `history_page` sur les donnees reelles du modele `Diagnosis`
-- Ajouter des tests unitaires pour les endpoints API
-- Ajouter gestion d'authentification pour espaces medecins
-- Ajouter journalisation et monitoring des predictions
+- [ ] Migration vers PostgreSQL pour production
+- [ ] Gestion d'authentification et autorisations (JWT/OAuth2)
+- [ ] Tests unitaires et d'integration complets
+- [ ] Logging structuree et monitoring (Sentry, ELK)
+- [ ] CI/CD pipeline (GitHub Actions, GitLab CI)
+- [ ] Documentation API Swagger/OpenAPI
+- [ ] Support multi-modeles IA
+- [ ] Interface admin amelioree pour validation medicale
+
+## Deployment en Production
+
+### Avec Docker
+
+1. **Creer un fichier `.env.prod`**:
+
+```env
+DEBUG=False
+ALLOWED_HOSTS=localhost,127.0.0.1,your-domain.com
+DATABASE_URL=postgresql://user:password@db:5432/pulmonaryai
+SECRET_KEY=your-secure-random-key
+```
+
+2. **Utiliser Gunicorn au lieu du serveur de dev**:
+
+```dockerfile
+RUN pip install gunicorn
+CMD ["gunicorn", "pulmonary_api.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "4"]
+```
+
+3. **Configurer un reverse proxy (Nginx, Apache)**
+
+4. **Securiser les communications (HTTPS/SSL)**
+
+5. **Mettre en place un backup strategy pour media/ et db**
+
+### Sans Docker (VPS/Serveur)
+
+1. Cloner le repo sur le serveur
+2. Configurer virtualenv et installer dependances
+3. Configurer variables d'environnement (`DEBUG=False`, `SECRET_KEY`, etc.)
+4. Utiliser Gunicorn + Systemd pour persistance du service
+5. Configurer Nginx comme reverse proxy
+6. Configurer SSL avec Let's Encrypt
+
+## Support & Contribution
+
+Pour toute question, bug report, ou contribution:
+
+1. Ouvrir une issue sur le repository
+2. Soumettre une pull request avec description claire
+3. Respecter les conventions de code et tests
+
+## License
+
+Ce projet est fourni a titre informatif pour usage educationnel et clinique-research.
+La responsabilite du resultat medical reste celle du praticien clinicien.
