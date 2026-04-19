@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PulmonaryAI | {{ title|default:"Diagnostic" }}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --ink: #0d1b1e;
+        --teal: #0f766e;
+        --teal-soft: #14b8a6;
+        --sky: #0ea5e9;
+        --cream: #f6f3ee;
+        --sun: #f59e0b;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        color: var(--ink);
+        font-family: "IBM Plex Sans", sans-serif;
+        background:
+          radial-gradient(
+            circle at 8% 10%,
+            rgba(20, 184, 166, 0.16),
+            transparent 32%
+          ),
+          radial-gradient(
+            circle at 88% 16%,
+            rgba(14, 165, 233, 0.22),
+            transparent 30%
+          ),
+          linear-gradient(140deg, #fdfcf9 0%, var(--cream) 52%, #e8f6f7 100%);
+      }
+
+      h1,
+      h2,
+      h3,
+      h4 {
+        font-family: "Space Grotesk", sans-serif;
+        letter-spacing: -0.015em;
+      }
+
+      .glass {
+        background: rgba(255, 255, 255, 0.78);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.6);
+        box-shadow: 0 16px 42px rgba(13, 27, 30, 0.08);
+      }
+
+      .main-panel {
+        animation: reveal 0.65s ease-out;
+      }
+
+      .flash {
+        animation: slide-down 0.35s ease-out;
+      }
+
+      @keyframes reveal {
+        from {
+          opacity: 0;
+          transform: translateY(16px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @keyframes slide-down {
+        from {
+          opacity: 0;
+          transform: translateY(-8px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .chip {
+        border: 1px solid rgba(15, 118, 110, 0.2);
+        background: rgba(20, 184, 166, 0.08);
+        color: #115e59;
+        border-radius: 999px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        padding: 0.4rem 0.75rem;
+      }
+
+      .brand-logo {
+        width: 2rem;
+        height: 2rem;
+        border-radius: 0.75rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+        font-weight: 700;
+        color: #fff;
+        background: linear-gradient(140deg, var(--teal) 0%, var(--sky) 100%);
+        box-shadow: 0 8px 18px rgba(14, 116, 144, 0.3);
+      }
+    </style>
+  </head>
+  <body>
+    <header
+      class="fixed inset-x-0 top-0 z-50 border-b border-white/60 bg-white/80 backdrop-blur-md"
+    >
+      <div
+        class="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8"
+      >
+        <a
+          href="{% url 'diagnosis:home_page' %}"
+          class="flex items-center gap-3"
+        >
+          <span class="brand-logo">PA</span>
+          <div>
+            <p class="m-0 text-sm font-semibold tracking-wide text-teal-700">
+              PulmonaryAI
+            </p>
+            <p class="m-0 text-xs text-slate-500">Diagnostic assistant</p>
+          </div>
+        </a>
+        <nav class="hidden items-center gap-2 md:flex">
+          <a
+            href="{% url 'diagnosis:upload_page' %}"
+            class="rounded-full px-4 py-2 text-sm font-medium text-slate-700 hover:bg-teal-50 hover:text-teal-700"
+            >Analyse</a
+          >
+          <a
+            href="{% url 'diagnosis:history' %}"
+            class="rounded-full px-4 py-2 text-sm font-medium text-slate-700 hover:bg-teal-50 hover:text-teal-700"
+            >Historique</a
+          >
+          <a
+            href="{% url 'diagnosis:api_test' %}"
+            class="rounded-full px-4 py-2 text-sm font-medium text-slate-700 hover:bg-teal-50 hover:text-teal-700"
+            >API Lab</a
+          >
+        </nav>
+        <div class="hidden md:block">
+          <span class="chip">Radiography AI</span>
+        </div>
+      </div>
+    </header>
+
+    <main
+      class="main-panel mx-auto w-full max-w-6xl px-4 pb-28 pt-28 sm:px-6 lg:px-8"
+    >
+      {% if messages %} {% for message in messages %}
+      <div
+        class="flash mb-4 rounded-2xl border px-4 py-3 text-sm font-medium {% if 'error' in message.tags %}border-rose-200 bg-rose-50 text-rose-700{% elif 'success' in message.tags %}border-emerald-200 bg-emerald-50 text-emerald-700{% else %}border-sky-200 bg-sky-50 text-sky-700{% endif %}"
+      >
+        {{ message }}
+      </div>
+      {% endfor %} {% endif %} {% block content %}{% endblock %}
+    </main>
+
+    <footer class="fixed inset-x-0 bottom-0 z-50 px-4 pb-4 sm:px-6 lg:px-8">
+      <div
+        class="mx-auto w-full max-w-6xl rounded-2xl border border-white/70 bg-white/80 px-4 py-3 text-center text-xs text-slate-600 backdrop-blur"
+      >
+        PulmonaryAI project released by
+        <span class="font-semibold text-slate-800">Laith Mahdi</span> and
+        <span class="font-semibold text-slate-800">Dalel Loussaief</span>.
+      </div>
+    </footer>
+  </body>
+</html>

@@ -1,0 +1,195 @@
+{% extends 'base.html' %} {% block content %}
+<section class="grid gap-6 lg:grid-cols-3">
+  <div class="glass rounded-3xl p-6 lg:col-span-1">
+    <p
+      class="mb-3 inline-flex rounded-full bg-teal-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-teal-700"
+    >
+      Workflow
+    </p>
+    <h1 class="mb-3 text-3xl font-bold text-slate-900">
+      Nouvelle analyse pulmonaire
+    </h1>
+    <p class="mb-6 text-sm text-slate-600">
+      Importez une radiographie thoracique et laissez le modèle détecter les
+      pathologies probables avec score de confiance.
+    </p>
+
+    <div class="space-y-3 text-sm text-slate-700">
+      <div class="rounded-2xl border border-teal-100 bg-teal-50/70 p-3">
+        <p class="font-semibold text-teal-700">1. Profil patient</p>
+        <p>Nom, age, genre et date de l'examen.</p>
+      </div>
+      <div class="rounded-2xl border border-sky-100 bg-sky-50/70 p-3">
+        <p class="font-semibold text-sky-700">2. Upload image</p>
+        <p>Formats images acceptes: JPG, JPEG, PNG.</p>
+      </div>
+      <div class="rounded-2xl border border-amber-100 bg-amber-50/70 p-3">
+        <p class="font-semibold text-amber-700">3. Prediction instantanee</p>
+        <p>Resultat detaille avec top classes et probabilites.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="glass rounded-3xl p-6 lg:col-span-2">
+    <form
+      method="post"
+      action="{% url 'diagnosis:upload_and_predict' %}"
+      enctype="multipart/form-data"
+      class="space-y-6"
+    >
+      {% csrf_token %}
+      <div class="grid gap-4 md:grid-cols-2">
+        <label class="block">
+          <span class="mb-2 block text-sm font-medium text-slate-700"
+            >Nom du patient</span
+          >
+          <input
+            type="text"
+            name="patient_name"
+            id="patient_name"
+            required
+            placeholder="Ex: Jean Dupont"
+            class="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-teal-500 focus:ring-2 focus:ring-teal-200"
+          />
+        </label>
+        <label class="block">
+          <span class="mb-2 block text-sm font-medium text-slate-700">Age</span>
+          <input
+            type="number"
+            name="patient_age"
+            id="patient_age"
+            min="0"
+            required
+            placeholder="Ex: 45"
+            class="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-teal-500 focus:ring-2 focus:ring-teal-200"
+          />
+        </label>
+        <label class="block">
+          <span class="mb-2 block text-sm font-medium text-slate-700"
+            >Genre</span
+          >
+          <select
+            name="patient_gender"
+            id="patient_gender"
+            class="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-teal-500 focus:ring-2 focus:ring-teal-200"
+          >
+            <option value="">Selectionner</option>
+            <option value="M">Homme</option>
+            <option value="F">Femme</option>
+            <option value="O">Autre</option>
+          </select>
+        </label>
+        <label class="block">
+          <span class="mb-2 block text-sm font-medium text-slate-700"
+            >Date de l'examen</span
+          >
+          <input
+            type="date"
+            name="exam_date"
+            id="exam_date"
+            value="{% now 'Y-m-d' %}"
+            class="w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm outline-none transition focus:border-teal-500 focus:ring-2 focus:ring-teal-200"
+          />
+        </label>
+      </div>
+
+      <div>
+        <p class="mb-2 text-sm font-medium text-slate-700">Radiographie</p>
+        <div
+          id="dropZone"
+          class="rounded-2xl border-2 border-dashed border-teal-300 bg-gradient-to-br from-teal-50 to-sky-50 p-8 text-center transition hover:border-teal-500"
+        >
+          <div
+            class="mx-auto mb-3 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-white text-2xl shadow-sm"
+          >
+            X
+          </div>
+          <p class="text-sm font-semibold text-slate-800">
+            Cliquez ou deposez une image ici
+          </p>
+          <p class="mt-1 text-xs text-slate-500">JPG, JPEG ou PNG</p>
+          <input
+            type="file"
+            name="image"
+            id="imageInput"
+            accept="image/*"
+            required
+            class="hidden"
+          />
+        </div>
+        <div
+          id="previewWrap"
+          class="mt-4 hidden rounded-2xl border border-slate-200 bg-white p-4"
+        >
+          <p
+            class="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500"
+          >
+            Apercu
+          </p>
+          <img
+            id="preview"
+            alt="Apercu radiographie"
+            class="max-h-80 w-full rounded-xl object-contain"
+          />
+          <p id="fileName" class="mt-2 text-xs text-slate-500"></p>
+        </div>
+      </div>
+
+      <button
+        type="submit"
+        class="w-full rounded-xl bg-gradient-to-r from-teal-600 to-sky-600 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-teal-300/40 transition hover:-translate-y-0.5 hover:from-teal-500 hover:to-sky-500"
+      >
+        Lancer l'analyse
+      </button>
+    </form>
+  </div>
+</section>
+
+<script>
+  const dropZone = document.getElementById("dropZone");
+  const imageInput = document.getElementById("imageInput");
+  const previewWrap = document.getElementById("previewWrap");
+  const preview = document.getElementById("preview");
+  const fileName = document.getElementById("fileName");
+
+  function updatePreview(file) {
+    if (!file) {
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = function (event) {
+      preview.src = event.target.result;
+      fileName.textContent = file.name;
+      previewWrap.classList.remove("hidden");
+    };
+    reader.readAsDataURL(file);
+  }
+
+  dropZone.addEventListener("click", function () {
+    imageInput.click();
+  });
+
+  dropZone.addEventListener("dragover", function (event) {
+    event.preventDefault();
+    dropZone.classList.add("border-teal-500");
+  });
+
+  dropZone.addEventListener("dragleave", function () {
+    dropZone.classList.remove("border-teal-500");
+  });
+
+  dropZone.addEventListener("drop", function (event) {
+    event.preventDefault();
+    dropZone.classList.remove("border-teal-500");
+    if (event.dataTransfer.files.length > 0) {
+      imageInput.files = event.dataTransfer.files;
+      updatePreview(event.dataTransfer.files[0]);
+    }
+  });
+
+  imageInput.addEventListener("change", function (event) {
+    updatePreview(event.target.files[0]);
+  });
+</script>
+{% endblock %}

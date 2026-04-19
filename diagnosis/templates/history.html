@@ -1,0 +1,88 @@
+{% extends 'base.html' %} {% block content %}
+<section class="glass rounded-3xl p-6">
+  <div class="mb-5 flex items-center justify-between gap-3">
+    <div>
+      <h1 class="text-2xl font-bold text-slate-900">Historique des analyses</h1>
+      <p class="text-sm text-slate-600">
+        Suivi des predictions generees par le modele.
+      </p>
+    </div>
+    <a
+      href="{% url 'diagnosis:upload_page' %}"
+      class="rounded-xl bg-gradient-to-r from-teal-600 to-sky-600 px-4 py-2 text-sm font-semibold text-white"
+      >Nouvelle analyse</a
+    >
+  </div>
+
+  {% if diagnoses %}
+  <div class="overflow-hidden rounded-2xl border border-slate-200 bg-white">
+    <table class="min-w-full divide-y divide-slate-200 text-sm">
+      <thead class="bg-slate-50">
+        <tr>
+          <th class="px-4 py-3 text-left font-semibold text-slate-600">Date</th>
+          <th class="px-4 py-3 text-left font-semibold text-slate-600">
+            Patient
+          </th>
+          <th class="px-4 py-3 text-left font-semibold text-slate-600">Age</th>
+          <th class="px-4 py-3 text-left font-semibold text-slate-600">
+            Prediction
+          </th>
+          <th class="px-4 py-3 text-left font-semibold text-slate-600">
+            Confiance
+          </th>
+          <th class="px-4 py-3 text-left font-semibold text-slate-600">
+            Action
+          </th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-slate-100">
+        {% for d in diagnoses %}
+        <tr>
+          <td class="px-4 py-3 text-slate-600">
+            {{ d.upload_date|date:"d/m/Y H:i" }}
+          </td>
+          <td class="px-4 py-3 font-medium text-slate-800">
+            {{ d.patient_name }}
+          </td>
+          <td class="px-4 py-3 text-slate-600">{{ d.patient_age }} ans</td>
+          <td class="px-4 py-3">
+            <span
+              class="rounded-full px-3 py-1 text-xs font-semibold {% if d.ai_prediction == 'Normal' %}bg-emerald-100 text-emerald-700{% else %}bg-amber-100 text-amber-700{% endif %}"
+            >
+              {{ d.ai_prediction }}
+            </span>
+          </td>
+          <td class="px-4 py-3 text-slate-700">
+            {{ d.confidence|floatformat:1 }}%
+          </td>
+          <td class="px-4 py-3">
+            <a
+              href="{% url 'diagnosis:result_detail' d.id %}"
+              class="text-sm font-semibold text-teal-700 hover:text-teal-800"
+              >Voir</a
+            >
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div
+    class="rounded-2xl border border-dashed border-slate-300 bg-white/80 p-10 text-center"
+  >
+    <h2 class="text-xl font-semibold text-slate-800">
+      Aucune analyse enregistree
+    </h2>
+    <p class="mt-2 text-sm text-slate-500">
+      Commencez une nouvelle prediction pour alimenter l'historique.
+    </p>
+    <a
+      href="{% url 'diagnosis:upload_page' %}"
+      class="mt-4 inline-flex rounded-xl bg-gradient-to-r from-teal-600 to-sky-600 px-4 py-2 text-sm font-semibold text-white"
+      >Lancer une analyse</a
+    >
+  </div>
+  {% endif %}
+</section>
+{% endblock %}

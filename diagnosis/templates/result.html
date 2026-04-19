@@ -1,0 +1,139 @@
+{% extends 'base.html' %} {% block content %}
+<section class="grid gap-6 lg:grid-cols-3">
+  <div class="glass rounded-3xl p-6 lg:col-span-2">
+    <div class="mb-5 flex items-center justify-between gap-3">
+      <h1 class="text-2xl font-bold text-slate-900">Resultat de l'analyse</h1>
+      <span
+        class="rounded-full px-3 py-1 text-xs font-semibold {% if prediction == 'Normal' %}bg-emerald-100 text-emerald-700{% else %}bg-amber-100 text-amber-700{% endif %}"
+      >
+        {% if prediction == 'Normal' %}Etat stable{% else %}Verification
+        recommandee{% endif %}
+      </span>
+    </div>
+
+    <div class="rounded-2xl border border-slate-100 bg-slate-50/60 p-4">
+      <p class="text-xs uppercase tracking-wide text-slate-500">
+        Diagnostic principal
+      </p>
+      <p class="mt-1 text-3xl font-bold text-slate-900">
+        {{ prediction|default:"Nodule" }}
+      </p>
+      <p class="mt-2 text-sm text-slate-600">
+        Confiance du modele:
+        <span class="font-semibold text-teal-700"
+          >{{ confidence|floatformat:1|default:"95.0" }}%</span
+        >
+      </p>
+    </div>
+
+    <div class="mt-6">
+      <h2 class="mb-3 text-lg font-semibold text-slate-800">Probabilites</h2>
+
+      {% if all_probabilities %} {% for pathology, prob in
+      all_probabilities.items %} {% if forloop.counter <= 6 %}
+      <div class="mb-3">
+        <div class="mb-1 flex justify-between text-sm text-slate-700">
+          <span>{{ pathology }}</span>
+          <span>{{ prob|floatformat:1 }}%</span>
+        </div>
+        <div class="h-3 overflow-hidden rounded-full bg-slate-100">
+          <div
+            class="js-prob-fill h-full rounded-full bg-gradient-to-r from-teal-500 to-sky-500"
+            data-width="{{ prob }}"
+          ></div>
+        </div>
+      </div>
+      {% endif %} {% endfor %} {% elif top_3 %} {% for item in top_3 %}
+      <div class="mb-3">
+        <div class="mb-1 flex justify-between text-sm text-slate-700">
+          <span>{{ item.0 }}</span>
+          <span>{{ item.1|floatformat:1 }}%</span>
+        </div>
+        <div class="h-3 overflow-hidden rounded-full bg-slate-100">
+          <div
+            class="js-prob-fill h-full rounded-full bg-gradient-to-r from-teal-500 to-sky-500"
+            data-width="{{ item.1 }}"
+          ></div>
+        </div>
+      </div>
+      {% endfor %} {% else %}
+      <p class="text-sm text-slate-500">
+        Les details de probabilites ne sont pas disponibles pour cette
+        prediction.
+      </p>
+      {% endif %}
+    </div>
+
+    <div class="mt-8 flex flex-wrap gap-3">
+      <a
+        href="{% url 'diagnosis:upload_page' %}"
+        class="rounded-xl bg-gradient-to-r from-teal-600 to-sky-600 px-5 py-2.5 text-sm font-semibold text-white shadow-md shadow-teal-300/30 transition hover:-translate-y-0.5"
+        >Nouvelle analyse</a
+      >
+      <a
+        href="{% url 'diagnosis:history' %}"
+        class="rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 transition hover:border-teal-300 hover:text-teal-700"
+        >Historique</a
+      >
+    </div>
+  </div>
+
+  <aside class="glass rounded-3xl p-6">
+    <h2 class="mb-4 text-lg font-semibold text-slate-900">Patient</h2>
+    <dl class="space-y-3 text-sm">
+      <div class="rounded-xl border border-slate-100 bg-white/70 p-3">
+        <dt class="text-slate-500">Nom</dt>
+        <dd class="font-semibold text-slate-800">
+          {{ patient_name|default:"Patient Test" }}
+        </dd>
+      </div>
+      <div class="rounded-xl border border-slate-100 bg-white/70 p-3">
+        <dt class="text-slate-500">Age</dt>
+        <dd class="font-semibold text-slate-800">
+          {{ patient_age|default:"45" }} ans
+        </dd>
+      </div>
+      <div class="rounded-xl border border-slate-100 bg-white/70 p-3">
+        <dt class="text-slate-500">Genre</dt>
+        <dd class="font-semibold text-slate-800">
+          {% if patient_gender == 'M' %}Homme {% elif patient_gender == 'F'
+          %}Femme {% elif patient_gender == 'O' %}Autre {% else %}Non spécifié
+          {% endif %}
+        </dd>
+      </div>
+      <div class="rounded-xl border border-slate-100 bg-white/70 p-3">
+        <dt class="text-slate-500">Date examen</dt>
+        <dd class="font-semibold text-slate-800">
+          {{ exam_date|default:timestamp|slice:":10" }}
+        </dd>
+      </div>
+      <div class="rounded-xl border border-slate-100 bg-white/70 p-3">
+        <dt class="text-slate-500">Fichier</dt>
+        <dd class="break-all font-semibold text-slate-800">
+          {{ file_name|default:"Image analysee" }}
+        </dd>
+      </div>
+      <div class="rounded-xl border border-slate-100 bg-white/70 p-3">
+        <dt class="text-slate-500">Release date</dt>
+        <dd class="font-semibold text-slate-800">
+          {{ release_date|default:timestamp|slice:":16" }}
+        </dd>
+      </div>
+      <div class="rounded-xl border border-slate-100 bg-white/70 p-3">
+        <dt class="text-slate-500">Released by</dt>
+        <dd class="font-semibold text-slate-800">
+          {{ released_by|default:"Laith Mahdi and Dalel Loussaief" }}
+        </dd>
+      </div>
+    </dl>
+  </aside>
+</section>
+
+<script>
+  document.querySelectorAll(".js-prob-fill").forEach(function (bar) {
+    const value = parseFloat(bar.dataset.width || "0");
+    const safe = Math.min(100, Math.max(0, isNaN(value) ? 0 : value));
+    bar.style.width = safe + "%";
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,15 @@
+{
+    "Atelectasis": 0,
+    "Cardiomegaly": 1,
+    "Consolidation": 2,
+    "Edema": 3,
+    "Effusion": 4,
+    "Emphysema": 5,
+    "Fibrosis": 6,
+    "Infiltration": 7,
+    "Mass": 8,
+    "Nodule": 9,
+    "Pleural_Thickening": 10,
+    "Pneumonia": 11,
+    "Pneumothorax": 12
+}
