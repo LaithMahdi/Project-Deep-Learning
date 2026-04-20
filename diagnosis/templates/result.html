@@ -29,34 +29,39 @@
     <div class="mt-6">
       <h2 class="mb-3 text-lg font-semibold text-slate-800">Probabilites</h2>
 
-      {% if all_probabilities %} {% for pathology, prob in
-      all_probabilities.items %} {% if forloop.counter <= 6 %}
-      <div class="mb-3">
-        <div class="mb-1 flex justify-between text-sm text-slate-700">
-          <span>{{ pathology }}</span>
-          <span>{{ prob|floatformat:1 }}%</span>
-        </div>
-        <div class="h-3 overflow-hidden rounded-full bg-slate-100">
-          <div
-            class="js-prob-fill h-full rounded-full bg-gradient-to-r from-teal-500 to-sky-500"
-            data-width="{{ prob }}"
-          ></div>
-        </div>
-      </div>
-      {% endif %} {% endfor %} {% elif top_3 %} {% for item in top_3 %}
-      <div class="mb-3">
-        <div class="mb-1 flex justify-between text-sm text-slate-700">
-          <span>{{ item.0 }}</span>
-          <span>{{ item.1|floatformat:1 }}%</span>
-        </div>
-        <div class="h-3 overflow-hidden rounded-full bg-slate-100">
-          <div
-            class="js-prob-fill h-full rounded-full bg-gradient-to-r from-teal-500 to-sky-500"
-            data-width="{{ item.1 }}"
-          ></div>
-        </div>
-      </div>
-      {% endfor %} {% else %}
+      {% if all_probabilities %}
+        {% for pathology, prob in all_probabilities.items %}
+          {% if forloop.counter <= 6 %}
+            <div class="mb-3">
+              <div class="mb-1 flex justify-between text-sm text-slate-700">
+                <span>{{ pathology }}</span>
+                <span>{{ prob|floatformat:1 }}%</span>
+              </div>
+              <div class="h-3 overflow-hidden rounded-full bg-slate-100">
+                <div
+                  class="js-prob-fill h-full rounded-full bg-gradient-to-r from-teal-500 to-sky-500"
+                  data-width="{{ prob }}"
+                ></div>
+              </div>
+            </div>
+          {% endif %}
+        {% endfor %}
+      {% elif top_3 %}
+        {% for item in top_3 %}
+          <div class="mb-3">
+            <div class="mb-1 flex justify-between text-sm text-slate-700">
+              <span>{{ item.0 }}</span>
+              <span>{{ item.1|floatformat:1 }}%</span>
+            </div>
+            <div class="h-3 overflow-hidden rounded-full bg-slate-100">
+              <div
+                class="js-prob-fill h-full rounded-full bg-gradient-to-r from-teal-500 to-sky-500"
+                data-width="{{ item.1 }}"
+              ></div>
+            </div>
+          </div>
+        {% endfor %}
+      {% else %}
       <p class="text-sm text-slate-500">
         Les details de probabilites ne sont pas disponibles pour cette
         prediction.
