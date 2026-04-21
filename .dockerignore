@@ -18,7 +18,8 @@ build
 Thumbs.db
 node_modules
 *.sqlite3
-media/temp/*
+media/
+staticfiles/
 .vscode
 .idea
 *.swp

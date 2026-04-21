@@ -47,13 +47,8 @@ RUN mkdir -p media/temp media/upload
 # Collect static files (optional, for production)
 RUN python manage.py collectstatic --noinput 2>/dev/null || true
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-    CMD python -c "import requests; requests.get('http://localhost:8000/diagnosis/', timeout=5)"
-
 # Expose port
 EXPOSE 8000
 
-# Start Django development server
-# For production, use Gunicorn: gunicorn pulmonary_api.wsgi:application --bind 0.0.0.0:8000
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+# Start production server (Cloud Run compatible)
+CMD ["sh", "-c", "python manage.py migrate --noinput && gunicorn pulmonary_api.wsgi:application --bind 0.0.0.0:${PORT:-8000} --workers 2 --timeout 120"]
