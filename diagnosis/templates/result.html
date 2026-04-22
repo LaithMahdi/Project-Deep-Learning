@@ -100,11 +100,17 @@
       </div>
       <div class="rounded-xl border border-slate-100 bg-white/70 p-3">
         <dt class="text-slate-500">Genre</dt>
-        <dd class="font-semibold text-slate-800">
-          {% if patient_gender == 'M' %}Homme {% elif patient_gender == 'F'
-          %}Femme {% elif patient_gender == 'O' %}Autre {% else %}Non spécifié
-          {% endif %}
-        </dd>
+       <dd class="font-semibold text-slate-800">
+        {% if patient_gender == 'M' %}
+          Homme
+        {% elif patient_gender == 'F' %}
+          Femme
+        {% elif patient_gender == 'O' %}
+          Autre
+        {% else %}
+          Non spécifié
+        {% endif %}
+      </dd>
       </div>
       <div class="rounded-xl border border-slate-100 bg-white/70 p-3">
         <dt class="text-slate-500">Date examen</dt>
