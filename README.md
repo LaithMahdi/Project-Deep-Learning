@@ -258,6 +258,34 @@ CMD ["gunicorn", "pulmonary_api.wsgi:application", "--bind", "0.0.0.0:8000", "--
 1. Cloner le repo sur le serveur
 2. Configurer virtualenv et installer dependances
 3. Configurer variables d'environnement (`DEBUG=False`, `SECRET_KEY`, etc.)
+
+### Sur Google Cloud Run
+
+Ce projet est deja equipe pour Cloud Run via `Dockerfile` et `cloudbuild.yaml`.
+
+1. Definir votre projet GCP:
+
+```bash
+gcloud config set project YOUR_PROJECT_ID
+```
+
+2. Lancer le build et le deploy automatique:
+
+```bash
+gcloud builds submit --config cloudbuild.yaml --substitutions=_SECRET_KEY=your-strong-secret-key
+```
+
+3. Recuperer l'URL du service avec:
+
+```bash
+gcloud run services describe pulmonary-ai --region us-central1 --format='value(status.url)'
+```
+
+Notes:
+
+- Le stockage SQLite reste temporaire sur Cloud Run. Pour conserver l'historique entre redemarrages, migrez ensuite vers Cloud SQL ou un autre service de base de donnees geré.
+- Les fichiers media sont servis en mode Cloud Run via `SERVE_MEDIA=True`, mais ils restent eux aussi temporaires tant que vous n'utilisez pas Cloud Storage.
+
 4. Utiliser Gunicorn + Systemd pour persistance du service
 5. Configurer Nginx comme reverse proxy
 6. Configurer SSL avec Let's Encrypt

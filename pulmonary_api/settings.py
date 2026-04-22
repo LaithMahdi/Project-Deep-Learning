@@ -31,6 +31,9 @@ DEBUG = os.getenv('DEBUG', 'False').lower() == 'true'
 
 ALLOWED_HOSTS = [host.strip() for host in os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',') if host.strip()]
 
+if os.getenv('K_SERVICE') and '*' not in ALLOWED_HOSTS:
+    ALLOWED_HOSTS.append('*')
+
 # Google Cloud Run URL support
 CLOUD_RUN_SERVICE_URL = os.getenv('CLOUD_RUN_SERVICE_URL', '')
 if CLOUD_RUN_SERVICE_URL:
@@ -126,7 +129,7 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
 
-STATIC_URL = 'static/'
+STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STORAGES = {
     'default': {
@@ -148,7 +151,11 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Security settings for production / reverse proxy
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-CSRF_TRUSTED_ORIGINS = [origin.strip() for origin in os.getenv('CSRF_TRUSTED_ORIGINS', '').split(',') if origin.strip()]
+default_csrf_trusted_origins = 'http://localhost:8000,http://127.0.0.1:8000'
+if os.getenv('K_SERVICE'):
+    default_csrf_trusted_origins += ',https://*.run.app,https://*.a.run.app'
+
+CSRF_TRUSTED_ORIGINS = [origin.strip() for origin in os.getenv('CSRF_TRUSTED_ORIGINS', default_csrf_trusted_origins).split(',') if origin.strip()]
 
 if not DEBUG:
     SESSION_COOKIE_SECURE = True

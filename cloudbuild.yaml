@@ -1,15 +1,11 @@
 steps:
-  - name: gcr.io/cloud-builders/docker
-    args:
-      - build
-      - -t
-      - ${_IMAGE}
-      - .
+  # Build the container image
+  - name: "gcr.io/cloud-builders/docker"
+    args: ["build", "-t", "${_IMAGE}", "."]
 
-  - name: gcr.io/cloud-builders/docker
-    args:
-      - push
-      - ${_IMAGE}
+  # Push the container image to Container Registry
+  - name: "gcr.io/cloud-builders/docker"
+    args: ["push", "${_IMAGE}"]
 
   - name: gcr.io/google.com/cloudsdktool/cloud-sdk
     entrypoint: gcloud
@@ -25,7 +21,13 @@ steps:
       - managed
       - --allow-unauthenticated
       - --set-env-vars
-      - DEBUG=False,ALLOWED_HOSTS=*,SECRET_KEY=${_SECRET_KEY}
+      - DEBUG=False,ALLOWED_HOSTS=*,SERVE_MEDIA=True,SECRET_KEY=${_SECRET_KEY}
+      - --memory
+      - 2Gi
+      - --cpu
+      - "1"
+      - --timeout
+      - "300"
 
 substitutions:
   _SERVICE: pulmonary-ai
