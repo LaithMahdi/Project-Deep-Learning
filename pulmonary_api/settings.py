@@ -16,30 +16,21 @@ from pathlib import Path
 
 load_dotenv()
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
-
-# SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-ll@fyq^o_4%n$$jim(4-hb(=xmeyq-luz1nmf_#lw6k83=2$-1')
 
-# SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG', 'False').lower() == 'true'
 
 ALLOWED_HOSTS = [host.strip() for host in os.getenv('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',') if host.strip()]
 
+# Cloud Run: allow all hosts when running on GCP
 if os.getenv('K_SERVICE') and '*' not in ALLOWED_HOSTS:
     ALLOWED_HOSTS.append('*')
 
-# Google Cloud Run URL support
 CLOUD_RUN_SERVICE_URL = os.getenv('CLOUD_RUN_SERVICE_URL', '')
 if CLOUD_RUN_SERVICE_URL:
     ALLOWED_HOSTS.append(CLOUD_RUN_SERVICE_URL.replace('https://', '').replace('http://', '').strip('/'))
-
-# Application definition
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -83,51 +74,24 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'pulmonary_api.wsgi.application'
 
-
-# Database
-# https://docs.djangoproject.com/en/4.1/ref/settings/#databases
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'NAME': Path('/tmp/db.sqlite3') if os.getenv('K_SERVICE') else BASE_DIR / 'db.sqlite3',
     }
 }
 
-
-# Password validation
-# https://docs.djangoproject.com/en/4.1/ref/settings/#auth-password-validators
-
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
+    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
-
-# Internationalization
-# https://docs.djangoproject.com/en/4.1/topics/i18n/
-
 LANGUAGE_CODE = 'en-us'
-
 TIME_ZONE = 'UTC'
-
 USE_I18N = True
-
 USE_TZ = True
-
-
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/4.1/howto/static-files/
 
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
@@ -139,23 +103,26 @@ STORAGES = {
         'BACKEND': 'whitenoise.storage.CompressedManifestStaticFilesStorage',
     },
 }
+
 MEDIA_URL = '/media/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
-# Créer le dossier media/temp
-os.makedirs(os.path.join(MEDIA_ROOT, 'temp'), exist_ok=True)
-os.makedirs(os.path.join(MEDIA_ROOT, 'upload'), exist_ok=True)
-# Default primary key field type
-# https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field
+
+# ✅ FIXED: moved os.makedirs out of module-level import
+# Directories are now created in Dockerfile and at startup via CMD
+# os.makedirs here can crash during collectstatic in Docker build
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# Security settings for production / reverse proxy
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 default_csrf_trusted_origins = 'http://localhost:8000,http://127.0.0.1:8000'
 if os.getenv('K_SERVICE'):
     default_csrf_trusted_origins += ',https://*.run.app,https://*.a.run.app'
 
-CSRF_TRUSTED_ORIGINS = [origin.strip() for origin in os.getenv('CSRF_TRUSTED_ORIGINS', default_csrf_trusted_origins).split(',') if origin.strip()]
+CSRF_TRUSTED_ORIGINS = [
+    origin.strip()
+    for origin in os.getenv('CSRF_TRUSTED_ORIGINS', default_csrf_trusted_origins).split(',')
+    if origin.strip()
+]
 
 if not DEBUG:
     SESSION_COOKIE_SECURE = True

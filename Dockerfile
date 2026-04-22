@@ -1,4 +1,3 @@
-# Multi-stage build for PulmonaryAI
 # Stage 1: Build dependencies
 FROM python:3.11-slim as builder
 
@@ -33,7 +32,9 @@ COPY --from=builder /usr/local /usr/local
 ENV PATH=/home/appuser/.local/bin:$PATH \
     PYTHONUNBUFFERED=1 \
     PYTHONDONTWRITEBYTECODE=1 \
-    DJANGO_SETTINGS_MODULE=pulmonary_api.settings
+    DJANGO_SETTINGS_MODULE=pulmonary_api.settings \
+    # Cloud Run default port
+    PORT=8080
 
 # Copy application code
 COPY --chown=appuser:appuser . .
@@ -45,12 +46,11 @@ RUN mkdir -p /app/media/temp /app/media/upload \
 # Switch to non-root user
 USER appuser
 
-
-# Collect static files (optional, for production)
+# Collect static files
 RUN python manage.py collectstatic --noinput 2>/dev/null || true
 
-# Expose port
-EXPOSE 8000
+# Expose 8080 (Cloud Run requirement)
+EXPOSE 8080
 
-# Start production server (Cloud Run compatible)
-CMD ["sh", "-c", "python manage.py migrate --noinput && gunicorn pulmonary_api.wsgi:application --bind 0.0.0.0:${PORT:-8000} --workers 2 --timeout 120"]
+# Bind to 0.0.0.0:8080
+CMD ["sh", "-c", "python manage.py migrate --noinput && gunicorn pulmonary_api.wsgi:application --bind 0.0.0.0:${PORT:-8080} --workers 2 --timeout 1200"]
