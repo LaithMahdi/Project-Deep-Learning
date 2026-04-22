@@ -11,7 +11,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Copy requirements and build wheels
 COPY requirements.txt .
-RUN pip install --user --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
 # Stage 2: Runtime
 FROM python:3.11-slim
@@ -27,7 +27,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN useradd -m -u 1000 appuser
 
 # Copy Python dependencies from builder
-COPY --from=builder /root/.local /home/appuser/.local
+COPY --from=builder /usr/local /usr/local
 
 # Set environment variables
 ENV PATH=/home/appuser/.local/bin:$PATH \
@@ -38,11 +38,13 @@ ENV PATH=/home/appuser/.local/bin:$PATH \
 # Copy application code
 COPY --chown=appuser:appuser . .
 
+# Create necessary directories as root
+RUN mkdir -p /app/media/temp /app/media/upload \
+    && chown -R appuser:appuser /app/media
+
 # Switch to non-root user
 USER appuser
 
-# Create necessary directories
-RUN mkdir -p media/temp media/upload
 
 # Collect static files (optional, for production)
 RUN python manage.py collectstatic --noinput 2>/dev/null || true
